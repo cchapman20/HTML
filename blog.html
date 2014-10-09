@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+        
+{% block headerlinks %}
+            <li><a href="index.html">HOME</a></li>
+            <li ><a href="slides.html">SLIDES</a></li>
+            <li class="active"><a href="blog.html">BLOG</a></li> 
+
+{% endblock %}
+        
+
+{% block body %}
+<div class="sigma-parent" id="sigma-example-parent">
+  <div id="sigma-example" class="sigma-expand"></div>
+</div>
+
+<script src="/static/assets/js/sigma.min.js"></script>
+<script src="/static/assets/js/sigma.parsers.gexf.min.js"></script>
+
+ <script type="text/javascript" src="http://oxfordinternetinstitute.github.io/sigma.js/fromsig/sigma.min.js"></script>
+
+<script src="/static/assets/js/sigma.parseGexf.js"></script>
+<script>
+function init() {
+var sigInst = sigma.init(document.getElementById('sigma-example')).drawingProperties({
+    defaultLabelColor: '#fff',
+    defaultLabelSize: 14,
+    defaultLabelBGColor: '#fff',
+    defaultLabelHoverColor: '#000',
+    labelThreshold: 6,
+    defaultEdgeType: 'curve',
+	borderSize: 1,//Something other than 0    
+    nodeBorderColor: "default",//exactly like this
+    defaultNodeBorderColor: "#FFF",//Any color of your choice
+    defaultBorderView: "always"//apply the default color to all nodes always (normal+hover)        
+  }).graphProperties({
+    minNodeSize: 3,
+    maxNodeSize: 30,
+    minEdgeSize: 5,
+    maxEdgeSize: 5
+  }).mouseProperties({
+    maxRatio: 4
+  });
+
+  // Parse a GEXF encoded file to fill the graph
+  // (requires "sigma.parseGexf.js" to be included)
+  sigInst.parseGexf('/static/assets/js/2.gexf');
+
+  // Bind events :
+  var greyColor = '#666';
+  sigInst.bind('overnodes',function(event){
+    var nodes = event.content;
+    var neighbors = {};
+    sigInst.iterEdges(function(e){
+      if(nodes.indexOf(e.source)<0 && nodes.indexOf(e.target)<0){
+        if(!e.attributes['grey']){
+          e.attributes['true_color'] = e.color;
+          e.color = greyColor;
+          e.attributes['grey'] = 1;
+        }
+      }else{
+        e.color = e.attributes['grey'] ? e.attributes['true_color'] : e.color;
+        e.attributes['grey'] = 0;
+
+        neighbors[e.source] = 1;
+        neighbors[e.target] = 1;
+      }
+    }).iterNodes(function(n){
+      if(!neighbors[n.id]){
+        if(!n.attributes['grey']){
+          n.attributes['true_color'] = n.color;
+          n.color = greyColor;
+          n.attributes['grey'] = 1;
+        }
+      }else{
+        n.color = n.attributes['grey'] ? n.attributes['true_color'] : n.color;
+        n.attributes['grey'] = 0;
+      }
+    }).draw(2,2,2);
+  }).bind('outnodes',function(){
+    sigInst.iterEdges(function(e){
+      e.color = e.attributes['grey'] ? e.attributes['true_color'] : e.color;
+      e.attributes['grey'] = 0;
+    }).iterNodes(function(n){
+      n.color = n.attributes['grey'] ? n.attributes['true_color'] : n.color;
+      n.attributes['grey'] = 0;
+    }).draw(2,2,2);
+  });
+
+  // Draw the graph :
+  sigInst.draw();
+}
+
+if (document.addEventListener) {
+  document.addEventListener("DOMContentLoaded", init, false);
+} else {
+  window.onload = init;
+}
+</script>
+
+<style type="text/css">
+  /* sigma.js context : */
+  .sigma-parent {
+    position: relative;
+    border-radius: 4px;
+    -moz-border-radius: 4px;
+    -webkit-border-radius: 4px;
+    background: #222;
+    height: 500px;
+    margin-bottom: 20px;
+ }
+  .sigma-expand {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+  .buttons-container{
+    padding-bottom: 8px;
+    padding-top: 12px;
+  } 
+
+  .text-parent{
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 50px;
+}
+
+  .text-box {
+    padding-bottom: 30px;
+    width: 70%;
+    height: 100%;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+}
+  
+  .plot2-parent {
+
+   width: 100%
+
+}
+
+
+
+</style>
+
+<div class="text-parent" id="parent1">
+<div class="text-box" id="text1">
+       Shown above is an interactive visualization of user interest by industry with the size of each node representing how many people are interested in that particular field. The connections show (hover over any field) the other industries someone is likely to be interested in given their interest in the highlighted industry. The majority of industries have multiple connections with others but the most interesting, in my opinion, is engineering which has no connections even though it's a well-represented/popular industry on the site! This tells us that people interested in engineering stick near excluxively to engineering. 
+
+</div>
+
+</div>
+    <div style="width: 800px; margin-left: auto; margin-right: auto;">
+
+       <img src="/static/assets/img/header-bg.jpg"> </img>
+    </div>
+
+
+    <div style="width: 70%; margin-left: auto; margin-right: auto;"> 
+      This plot was created by first selecting 1000 randomly sampled users (the total number of users in the site is WAY too large to run!) from theMuse.com. The next step, using cosine similarity, was to calculate a 1000x1000 matrix which tells us how similar each user is to every other user. Then with the aid of Gephi, I used Force Atlas 2 to simulate the nodes as a physical system. Force Atlas 2 treats all nodes (users) as repulsive with their connections acting as springs (attractive) to work against this repulsion. The simulation selects a starting point for each node randomly and then simulates the forces over some time-step on each node/user until a reasonable balance is reached. And the result (takes just a few minutes to run) leaves similar users clustered together and far away from the users most different from them. What's interesting is how a few really distinct clusters form from just taking 1000 users! Computationally, this type of calculation is far too expensive to implement for clustering users in any sort of practical setting, but provides a nice way to visualize the variance in users' preferences. 
+   </div>
+
+{% endblock %}
+
+        
